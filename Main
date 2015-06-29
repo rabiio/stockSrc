@@ -1,0 +1,214 @@
+import java.util.*;
+
+public class Main {
+
+	// GBCE Data
+	private static ArrayList<Stock> stockList = new ArrayList<Stock>();
+	// Business object
+	private static BusinessService businessService = null;
+	// Scanner for input
+	private static Scanner scanner = new Scanner(System.in)
+			.useLocale(Locale.US);
+
+	// Recreate correctly the scanner (used after any input problem to correct
+	// the next one)
+	@SuppressWarnings("resource")
+	private static void rebootScanner() {
+		scanner = new Scanner(System.in).useLocale(Locale.US);
+	}
+
+	// Main working process
+	public static void main(String[] args) throws Exception {
+
+		// Get the ticker price
+		System.out.println("Get the ticker price: ");
+		Double tickerPrice = null;
+		try {
+			tickerPrice = scanner.nextDouble();
+		} catch (Exception e) {
+			System.out.println("The input was not correct");
+			// reboot scanner there, in case that the tickerPrice was wrong
+			rebootScanner();
+		}
+		businessService = new BusinessService(tickerPrice);
+
+		// GBCE Data init
+		stockLst();
+
+		// launch menu
+		menu();
+	}
+
+	// stock List method
+	private static void stockLst() {
+
+		// GBCE Data init
+		stockList.add(new Stock("TEA", StockType.COMMON, 0.0, null, 100));
+		stockList.add(new Stock("POP", StockType.COMMON, 8.0, null, 100));
+		stockList.add(new Stock("ALE", StockType.COMMON, 23.0, null, 60));
+		stockList.add(new Stock("GIN", StockType.PREFERRED, 8.0, 0.02, 100));
+		stockList.add(new Stock("JOE", StockType.COMMON, 13.0, null, 250));
+
+	}
+
+	// Main Menu method
+	private static void menu() {
+		// init of choice
+		int choice = -1;
+		// when the choice is 0, the current session is closed
+		while (choice != 0) {
+
+			// Print Menu
+			System.out.println("Main Menu: ");
+			System.out.println("1 - Dividend yield");
+			System.out.println("2 - P/E Ratio");
+			System.out.println("3 - Record a Trade");
+			System.out.println("4 - Stock Price");
+			System.out.println("5 - GBCE All Share Index");
+
+			// wait the user command
+			try {
+				choice = scanner.nextInt();
+			} catch (Exception e) {
+				System.out.println("The input was not correct");
+				// reboot scanner there, in case that the choice was wrong
+				rebootScanner();
+			}
+
+			// using the choice to define the action to do
+			try {
+				processChoice(choice);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+				// reboot scanner there, if there was a Trade input problem for
+				// instance
+				rebootScanner();
+			}
+		}
+	}
+
+	// Do actions depending of the choice on menu screen
+	private static void processChoice(int choice) throws Exception {
+		// init
+		Stock stockChosen = null;
+		Trade trd = null;
+
+		// defining action to do
+		switch (choice) {
+		//
+		case 1:
+			stockChosen = ProposeStock();
+			System.out.println("Calculated Dividend yield for "
+					+ stockChosen.getSymbol() + ": "
+					+ businessService.getDividendYield(stockChosen));
+			break;
+		case 2:
+			stockChosen = ProposeStock();
+			System.out.println("Calculated P/E Ratio for "
+					+ stockChosen.getSymbol() + ": "
+					+ businessService.getPERatio(stockChosen));
+			break;
+		case 3:
+			stockChosen = ProposeStock();
+			try {
+				trd = inputTrade();
+			} catch (Exception e) {
+				throw new Exception("The input was not correct");
+			}
+			// Add a trade to a given Stock
+			stockChosen.addTrade(trd);
+			System.out.println("New Trade has been added to "
+					+ stockChosen.getSymbol());
+			break;
+		case 4:
+			stockChosen = ProposeStock();
+			ArrayList<Trade> tList = stockChosen.getRecentTrades();
+			System.out.println("Calculated Stock Price for "
+					+ stockChosen.getSymbol() + ": "
+					+ businessService.getStockPrice(tList));
+			break;
+		case 5:
+			System.out.println("Calculated GBCE All Share Index : "
+					+ businessService.getAllShareIndex(stockList));
+			break;
+		case 0:
+			break;
+		default:
+			throw new Exception(
+					"The case is not supported: the choosen value is not correct");
+		}
+	}
+
+	// introduce the stock list, to let the user choose one of them
+	private static Stock ProposeStock() throws Exception {
+		// displaying the UX
+		System.out.println("Choose a Stock: ");
+		int i = 0;
+		for (Stock stock : stockList) {
+			i++;
+			System.out.println(i + " - " + stock.getSymbol());
+		}
+		// waiting for the user choice
+		int choice = -1;
+		try {
+			choice = scanner.nextInt();
+		} catch (Exception e) {
+			throw new Exception(
+					"The case is not supported: the given choice is not correct");
+		}
+
+		// convert to ArrayList value and get it
+		try {
+			return stockList.get(choice - 1);
+		} catch (Exception e) {
+			throw new Exception(
+					"The case is not supported: the choosen stock is not available");
+		}
+	}
+
+	// Create a new Trade
+	private static Trade inputTrade() throws Exception {
+		// shared quantities input
+		System.out.println("Shared Quantities:");
+		int quantity = 0;
+		try {
+			quantity = scanner.nextInt();
+		} catch (Exception e) {
+			throw new Exception(
+					"This case is not supported: the choosen quantity is not correct");
+		}
+
+		// indicator input
+		System.out.println("Indicator:");
+		System.out.println("1 - Purchase");
+		System.out.println("2 - Sale");
+		int choosenIndicator = scanner.nextInt();
+		TradeType indicator;
+		// create corresponding business type for the Trade
+		switch (choosenIndicator) {
+		case 1:
+			indicator = TradeType.PURCHASE;
+			break;
+		case 2:
+			indicator = TradeType.SALE;
+			break;
+		default:
+			throw new Exception(
+					"The case is not supported: the choosen indicator is not correct");
+		}
+
+		// price input
+		System.out.println("Price:");
+		Double price = 0.0;
+		try {
+			price = scanner.nextDouble();
+		} catch (Exception e) {
+			throw new Exception(
+					"This case is not supported: the choosen price is not correct");
+		}
+
+		// return new corresponding trade
+		return new Trade(new Date(), quantity, indicator, price);
+	}
+
+}
