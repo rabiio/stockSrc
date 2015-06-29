@@ -1,0 +1,37 @@
+import java.util.Date;
+
+// Trade can be recorded for a given Stock
+public class Trade {
+	private Date timestamp;
+	private int sharedQuantities;
+	private TradeType indicator;
+	private Double price;
+	
+	// Main constructor
+	public Trade(Date timestamp, int sharedQuantities, TradeType indicator,
+			Double price) {
+		super();
+		this.timestamp = timestamp;
+		this.sharedQuantities = sharedQuantities;
+		this.indicator = indicator;
+		this.price = price;
+	}
+
+	// Getter / Setter
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	public int getSharedQuantities() {
+		return sharedQuantities;
+	}
+
+	public TradeType getIndicator() {
+		return indicator;
+	}
+
+	public Double getPrice() {
+		return price;
+	}
+
+}
