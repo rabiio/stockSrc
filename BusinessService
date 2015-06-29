@@ -1,0 +1,153 @@
+import java.util.ArrayList;
+
+/* 
+ * functional behaviors 
+ */
+public class BusinessService {
+
+	/*
+	 * Ticker Price need to be used in calculation, so it has to be set as
+	 * parameter of the program, because there no mention of it
+	 */
+	private static Double tickerPrice = 0.0;
+
+	// Main constructor
+	public BusinessService(Double tickerPrice) {
+		BusinessService.tickerPrice = tickerPrice;
+	}
+
+	/*
+	 * Behaviors
+	 */
+
+	/**
+	 * Calculate the dividend yield - choose between COMMON or PREFERRED
+	 * depending on the nature of the Stock
+	 * 
+	 * @param stock
+	 * @return
+	 */
+	public Double getDividendYield(Stock stock) {
+		Double ret = 0.0;
+		switch (stock.getType()) {
+		case COMMON:
+			ret = stock.getLastDividend() / tickerPrice;
+		case PREFERRED:
+			ret = stock.getFixedDividend() * stock.getParValue() / tickerPrice;
+		}
+		// unhandled case?
+		return ret;
+	}
+
+	// Dividend to use ?)
+	/**
+	 * calculate the P/E Ratio
+	 * 
+	 * @param stock
+	 * @return
+	 * @throws Exception
+	 */
+	public Double getPERatio(Stock stock) throws Exception {
+		// Get Dividend
+		Double dividend = stock.getLastDividend();
+
+		// computation
+		if (dividend != 0) {
+			return tickerPrice / dividend;
+		} else {
+			throw new Exception("dividend is zero");
+		}
+	}
+
+	/**
+	 * 
+	 * @param stockList
+	 * @return
+	 * @throws Exception
+	 */
+	public Double getPERatio2(ArrayList<Stock> stockList) throws Exception {
+		// Get Dividend
+		Double dividend = 0.0;
+
+		for (Stock s : stockList) {
+			dividend += s.getLastDividend();
+		}
+		// computation
+		if (dividend != 0) {
+			return tickerPrice / dividend;
+		} else {
+			throw new Exception("dividend is zero");
+		}
+	}
+
+	/**
+	 * Calculate Stock Price from given Trade list
+	 * 
+	 * @param list
+	 * @return
+	 * @throws Exception
+	 */
+	public Double getStockPrice(ArrayList<Trade> list) throws Exception {
+
+		// empty list of trade: nothing can be computed
+		Double ret = 0.0;
+
+		// init
+		Double numerator = 0.0;
+		Double denominator = 0.0;
+
+		// creating numerator and denominator
+		for (Trade t : list) {
+			numerator += (t.getPrice() * t.getSharedQuantities());
+			denominator += t.getSharedQuantities();
+		}
+
+		// then compute the result
+		if (denominator != 0) {
+
+			ret = numerator / denominator;
+		}
+		return ret;
+
+	}
+
+	/**
+	 * calculate GBCE All Share Index from the given Stock list
+	 * 
+	 * @param stockList
+	 * @return
+	 * @throws Exception
+	 */
+	public Double getAllShareIndex(ArrayList<Stock> stockList) throws Exception {
+		// init
+		int i = 0;
+		Double value = 1.0;
+
+		try {
+			// for each stock, get its stock price and create the P1P2P3..Pn
+			for (Stock s : stockList) {
+				try {
+					// Double tem2 = this.getStockPrice(s.getRecentTrades());
+					Double temp = this.getStockPrice(s.getAllTrades());
+					i++;
+					if (temp != 0) {
+						value *= temp;
+					}
+				} catch (Exception e) {
+					// stock Price could not be calculate (No Trade to use/
+					throw new Exception(e.getMessage());
+				}
+			}
+			// i should not be 0 to allow computation
+			if (i > 0) {
+				return Math.pow(value, new Double(1.0 / i));
+			} else {
+				throw new Exception(
+						"The GBCE All Share Index cannot be calculated (Not enough Trades to calculate something)");
+			}
+		} catch (Exception e) {
+			throw new Exception(e.getMessage());
+		}
+	}
+
+}
