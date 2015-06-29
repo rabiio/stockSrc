@@ -1,0 +1,6 @@
+
+// Type of trade
+public enum TradeType {
+	PURCHASE,
+	SALE
+}
