@@ -1,0 +1,6 @@
+
+// Type of stock
+public enum StockType {
+	COMMON,
+	PREFERRED
+}
