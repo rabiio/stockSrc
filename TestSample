@@ -1,0 +1,82 @@
+import static org.junit.Assert.*;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+
+import org.junit.Test;
+
+
+public class TestSample {
+
+	@Test
+	public void GetRecentTrade() throws Exception {
+		ArrayList<Stock> stockList = new ArrayList<Stock>();
+		//BusinessService bs = new BusinessService(10.0);
+		
+		stockList.add(new Stock("TEA", StockType.COMMON, 0.0, null, 100));
+		stockList.add(new Stock("POP", StockType.COMMON, 8.0, null, 100));
+		stockList.add(new Stock("ALE", StockType.COMMON, 23.0, null, 60));
+		stockList.add(new Stock("GIN", StockType.PREFERRED, 8.0, 0.02, 100));
+		stockList.add(new Stock("JOE", StockType.COMMON, 13.0, null, 250));
+		
+		// both counted because they were created right now
+		stockList.get(1).addTrade(new Trade(new Date(),2,TradeType.PURCHASE,10.0));
+		stockList.get(1).addTrade(new Trade(new Date(),3,TradeType.PURCHASE,13.0));
+		
+		// after 15 minutes at least
+		Date olderDate = new Date();
+		olderDate.setTime(olderDate.getTime() - 900001);
+		
+		// before 15 minutes
+		Date newerDate = new Date();
+		newerDate.setTime(newerDate.getTime() - 800000);
+
+		// not counted
+		stockList.get(1).addTrade(new Trade(olderDate,3,TradeType.PURCHASE,13.0));
+		// counted
+		stockList.get(1).addTrade(new Trade(newerDate,3,TradeType.PURCHASE,13.0));
+		assertEquals((int)3, (int) stockList.get(1).getRecentTrades().size());
+	}
+	
+	@Test
+	public void StockPrice() throws Exception {
+		
+		ArrayList<Stock> stockList = new ArrayList<Stock>();
+		BusinessService bs = new BusinessService(10.0);
+		
+		stockList.add(new Stock("TEA", StockType.COMMON, 0.0, null, 100));
+		stockList.add(new Stock("POP", StockType.COMMON, 8.0, null, 100));
+		stockList.add(new Stock("ALE", StockType.COMMON, 23.0, null, 60));
+		stockList.add(new Stock("GIN", StockType.PREFERRED, 8.0, 0.02, 100));
+		stockList.add(new Stock("JOE", StockType.COMMON, 13.0, null, 250));
+		
+		stockList.get(1).addTrade(new Trade(new Date(),2,TradeType.PURCHASE,10.0));
+		stockList.get(1).addTrade(new Trade(new Date(),3,TradeType.PURCHASE,13.0));
+		
+		assertEquals((Double)11.8, (Double) bs.getStockPrice(stockList.get(1).getRecentTrades()));
+	}
+	
+	@Test
+	public void AllShareIndex() throws Exception {
+		
+		ArrayList<Stock> stockList = new ArrayList<Stock>();
+		BusinessService bs = new BusinessService(10.0);
+		
+		stockList.add(new Stock("TEA", StockType.COMMON, 0.0, null, 100));
+		stockList.add(new Stock("POP", StockType.COMMON, 8.0, null, 100));
+		stockList.add(new Stock("ALE", StockType.COMMON, 23.0, null, 60));
+		stockList.add(new Stock("GIN", StockType.PREFERRED, 8.0, 0.02, 100));
+		stockList.add(new Stock("JOE", StockType.COMMON, 13.0, null, 250));
+		
+		stockList.get(1).addTrade(new Trade(new Date(),2,TradeType.PURCHASE,10.0));
+		stockList.get(1).addTrade(new Trade(new Date(),3,TradeType.PURCHASE,13.0));
+		
+		stockList.get(2).addTrade(new Trade(new Date(),3,TradeType.PURCHASE,13.0));
+		
+		BigDecimal result = BigDecimal.valueOf((bs.getAllShareIndex(stockList)));
+		result = result.setScale(7,BigDecimal.ROUND_HALF_UP);
+		assertEquals(BigDecimal.valueOf(2.7363086), result);
+	}
+
+}
