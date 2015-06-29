@@ -1,0 +1,77 @@
+import java.util.ArrayList;
+//import java.util.Calendar;
+import java.util.Date;
+
+// Stock
+public class Stock {
+	private String symbol;
+	private StockType type;
+	
+	private Double lastDividend;
+	private Double fixedDividend;
+	private int parValue;
+	
+	private ArrayList<Trade> tradeList;
+	
+	// Main constructor
+	public Stock(String symbol, StockType type, Double lastDividend,
+			Double fixedDividend, int parValue) {
+		super();
+		this.symbol = symbol;
+		this.type = type;
+		this.lastDividend = lastDividend;
+		this.fixedDividend = fixedDividend;
+		this.parValue = parValue;
+		this.tradeList = new ArrayList<Trade>();
+	}
+	
+	// Getters
+	public String getSymbol() {
+		return symbol;
+	}
+
+	public StockType getType() {
+		return type;
+	}
+
+	public Double getLastDividend() {
+		return lastDividend;
+	}
+
+	public double getFixedDividend() {
+		return fixedDividend;
+	}
+
+	public int getParValue() {
+		return parValue;
+	}
+	
+	public ArrayList<Trade> getAllTrades(){
+		return tradeList;
+	}
+	
+	// Trade management
+	public void addTrade(Trade trade){
+		this.tradeList.add(trade);
+	}
+	
+	// finding recent trades
+	public ArrayList<Trade> getRecentTrades(){
+		// final results
+		ArrayList<Trade> temp = new ArrayList<Trade>();
+		
+		// creating a reference to current time 
+		Date fifteenMinutesAgo = new Date();
+		// calculating "now less 15 minutes"
+		fifteenMinutesAgo.setTime(fifteenMinutesAgo.getTime() - 900000);
+		
+		// finding most recent trades
+		for(Trade trade : this.tradeList){
+			if(trade.getTimestamp().after(fifteenMinutesAgo)){
+				temp.add(trade);
+			}
+		}
+		return temp;
+	}
+
+}
